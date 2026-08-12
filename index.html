@@ -260,6 +260,8 @@ body {
   border-bottom: 1px solid var(--border);
   background: var(--bg-track);
   transition: background .12s;
+  height: 110px;
+  justify-content: space-between;
 }
 .track-header:hover { background: var(--bg-track-alt); }
 
@@ -314,6 +316,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-height: 24px;
 }
 
 /* Volume fader */
@@ -366,7 +369,7 @@ body {
   display: flex;
   gap: 2px;
   height: 4px;
-  margin-top: 2px;
+  margin-top: 0;
 }
 .meter-bar {
   flex: 1;
@@ -1154,6 +1157,7 @@ function addTrack() {
   t.gainNode.connect(masterGain);
   tracks.push(t);
   renderAll();
+  openFileDialogForTrack(tracks.length - 1);
 }
 
 function removeTrack(idx) {
@@ -1237,8 +1241,11 @@ async function loadAudioFile(file, trackIdx, insertAtTime) {
     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
     showModal('Pronto', 100, 'Concluído!');
 
+    const cleanName = file.name.replace(/\.[^.]+$/, '');
+    t.name = cleanName;
     const clip = createClip(t, audioBuffer, file.name, insertAtTime);
     t.clips.push(clip);
+    syncTrackNameInput(trackIdx);
 
     setTimeout(hideModal, 500);
     renderAll();
@@ -1246,6 +1253,13 @@ async function loadAudioFile(file, trackIdx, insertAtTime) {
     console.error(err);
     hideModal();
     alert('Erro ao carregar o arquivo: ' + err.message);
+  }
+
+  function syncTrackNameInput(trackIdx) {
+    const header = trackListEl.children[trackIdx];
+    if (!header) return;
+    const input = header.querySelector('.track-name');
+    if (input) input.value = tracks[trackIdx].name;
   }
 }
 
